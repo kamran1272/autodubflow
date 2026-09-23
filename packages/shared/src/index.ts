@@ -1,5 +1,8 @@
 export const sharedStatus = 'shared-ready';
 
+export { getOutputPreset, outputPresets } from './output-presets';
+export type { OutputPreset, OutputPresetId } from './output-presets';
+
 export type ServiceHealth = {
   status: 'ok' | 'degraded' | 'error';
   service: string;

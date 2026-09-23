@@ -10,6 +10,8 @@ A separate relocated DubFlow schema exists under `packages/database/prisma/dubfl
 
 No migration directory is committed. The database package currently exposes `prisma db push` and Prisma generation/validation, so schema synchronization is development-oriented rather than a reviewed production rollout.
 
+The Phase 2 foundation now adds `WorkflowEvent`, `StageExecution`, `SourceVideoExternalIdentity`, and `AutomationRightsGrant` models. The database package also exposes explicit development, deployment, and diff commands. No migration has been generated or applied yet because the repository lacks a safe baseline migration for the existing production-style schema.
+
 ## Reusable structure
 
 - Better Auth tables and user relations are a valid starting point.
@@ -63,6 +65,8 @@ No migration directory is committed. The database package currently exposes `pri
 ## Migration policy
 
 Do not reset or overwrite production-style data. Introduce a migration directory, review generated SQL, take backups, and roll out additive tables/columns first. The separate DubFlow schema must be mapped intentionally; do not merge same-named `User`, `Project`, or `Voice` models mechanically.
+
+The first database deployment task is to establish a reviewed baseline for the current schema, then add the durable workflow models as an additive migration. Until that exists, `db:push` remains development-only and `db:migrate:deploy` must not be pointed at production.
 
 ## Database disposition
 

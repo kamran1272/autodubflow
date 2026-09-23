@@ -42,3 +42,5 @@ Runs isolated Chromium automation and interacts with third-party websites with n
 AI may decide what to do, but the platform must not let the frontend or orchestration layer directly own expensive execution. Deterministic work belongs to workers, provider adapters, and the video engine.
 
 For the verified current state and migration classifications, see [repository-audit.md](repository-audit.md). The target design is in [target-architecture.md](target-architecture.md), and implementation claims must follow [implementation-status.md](implementation-status.md).
+
+The canonical cross-phase checklist is [../implementation-status.md](../implementation-status.md). The architecture-local status file is retained as an audit snapshot for the original architecture-document set.
