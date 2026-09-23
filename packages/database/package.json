@@ -1,0 +1,22 @@
+{
+  "name": "@autodubflow/database",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsc --noEmit",
+    "build": "prisma generate && tsc --noEmit",
+    "lint": "eslint . --config ../../eslint.config.mjs",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "prisma:validate": "prisma validate --schema=./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@autodubflow/config": "workspace:*",
+    "@prisma/client": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prisma": "^6.0.0",
+    "typescript": "^5.7.2"
+  }
+}

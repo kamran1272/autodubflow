@@ -1,0 +1,24 @@
+{
+  "name": "@autodubflow/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint . --config ../../eslint.config.mjs",
+    "test": "tsx --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-auth": "^1.7.5",
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "eslint": "^9.15.0",
+    "typescript": "^5.7.2"
+  }
+}

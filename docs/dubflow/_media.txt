@@ -1,0 +1,5 @@
+ffmpeg        : E:\Projects 2026\dubflow\node_modules\ffmpeg-static\ffmpeg.exe
+version       : ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+encoders      : libx264=yes libmp3lame=yes aac=yes mpeg4=yes libopus=yes pcm_s16le=yes
+filters       : subtitles=yes amix=yes adelay=yes apad=yes atrim=yes loudnorm=yes dynaudnorm=yes volume=yes afade=yes atempo=yes flite=no
+pipeline ready: yes

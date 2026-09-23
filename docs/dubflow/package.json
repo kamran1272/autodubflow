@@ -1,0 +1,35 @@
+{
+  "name": "dubflow-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "lint": "npm run lint -w apps/web && npm run lint -w apps/api",
+    "format": "prettier --write .",
+    "typecheck": "tsc -p apps/api/tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:seed": "tsx prisma/seed.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.7.5",
+    "concurrently": "^9.1.2",
+    "husky": "^9.0.0",
+    "playwright": "^1.51.1",
+    "prettier": "^3.3.3",
+    "prisma": "^5.6.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

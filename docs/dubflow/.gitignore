@@ -1,0 +1,30 @@
+node_modules
+**/node_modules
+/dist
+apps/web/dist
+apps/api/dist
+packages/shared/dist
+.env
+.env.*
+!.env.example
+coverage
+.DS_Store
+*.log
+
+# Local SQLite database + generated prisma schema variant
+prisma/*.db
+prisma/*.db-journal
+prisma/schema.sqlite.prisma
+prisma/.local
+
+# Local file storage + media working directories
+storage
+.work
+uploads
+apps/api/uploads
+apps/web/test-results
+apps/web/playwright-report
+e2e/test-results
+e2e/playwright-report
+*.tsbuildinfo
+

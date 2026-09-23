@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AutomationStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum SourceVideoStatus {
+  QUEUED
+  INGESTED
+  ANALYZING
+  DUBBING
+  EDITING
+  CAPTIONING
+  RENDERING
+  QC
+  PUBLISHED
+  FAILED
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  automations   Automation[]
+  sourceVideos  SourceVideo[]
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                String    @id @default(cuid())
+  accountId         String
+  providerId        String
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope            String?
+  password         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verification")
+}
+
+model SourceChannel {
+  id        String       @id @default(cuid())
+  name      String
+  provider  String
+  type      String       @default("youtube")
+  url       String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  automations Automation[] @relation("AutomationSourceChannel")
+  sourceVideos SourceVideo[]
+}
+
+model DestinationChannel {
+  id        String       @id @default(cuid())
+  name      String
+  provider  String
+  type      String       @default("youtube")
+  url       String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  automations Automation[] @relation("AutomationDestinationChannel")
+}
+
+model Schedule {
+  id            String       @id @default(cuid())
+  cronExpression String
+  timezone      String       @default("UTC")
+  enabled       Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  automations   Automation[]
+}
+
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  content     String       @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  automations Automation[]
+}
+
+model ProcessingConfig {
+  id              String         @id @default(cuid())
+  name            String?
+  sourceLanguage  String
+  targetLanguage  String
+  voiceProfile    String?
+  modelSettings   Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  automations     Automation[]
+  sourceVideos    SourceVideo[]
+}
+
+model Automation {
+  id                  String             @id @default(cuid())
+  userId              String
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  status              AutomationStatus   @default(DRAFT)
+  sourceChannelId     String?
+  sourceChannel       SourceChannel?     @relation("AutomationSourceChannel", fields: [sourceChannelId], references: [id])
+  destinationChannelId String?
+  destinationChannel  DestinationChannel? @relation("AutomationDestinationChannel", fields: [destinationChannelId], references: [id])
+  scheduleId          String?
+  schedule            Schedule?          @relation(fields: [scheduleId], references: [id])
+  templateId          String?
+  template            Template?          @relation(fields: [templateId], references: [id])
+  processingConfigId  String?
+  processingConfig    ProcessingConfig?  @relation(fields: [processingConfigId], references: [id])
+  videos              SourceVideo[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model SourceVideo {
+  id                 String            @id @default(cuid())
+  automationId       String
+  automation         Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  userId             String?
+  user               User?             @relation(fields: [userId], references: [id])
+  sourceChannelId    String?
+  sourceChannel      SourceChannel?    @relation(fields: [sourceChannelId], references: [id])
+  title              String
+  externalUrl        String?
+  status             SourceVideoStatus @default(QUEUED)
+  processingConfigId String?
+  processingConfig   ProcessingConfig? @relation(fields: [processingConfigId], references: [id])
+  media              Media?
+  dubbing            Dubbing?
+  analysis           Analysis?
+  editing            Editing?
+  captions           Captions?
+  render             Render?
+  qualityControl     QC?
+  publish            Publish?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([automationId])
+  @@index([status])
+}
+
+model Media {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  fileKey       String?
+  format        String?
+  durationSeconds Int?
+  checksum      String?
+  status        String      @default("pending")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Dubbing {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  provider      String?
+  voiceProfile  String?
+  status        String      @default("pending")
+  outputUrl     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Analysis {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  transcript    String?     @db.Text
+  summary       String?     @db.Text
+  language      String?
+  sentiment     Float?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Editing {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  editor        String?
+  status        String      @default("pending")
+  notes         String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Captions {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  format        String?
+  status        String      @default("pending")
+  fileKey       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Render {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  status        String      @default("pending")
+  outputUrl     String?
+  format        String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model QC {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  status        String      @default("pending")
+  issues        String?     @db.Text
+  passed        Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Publish {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  status        String      @default("pending")
+  publishedUrl  String?
+  channelName   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}

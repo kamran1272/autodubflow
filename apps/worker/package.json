@@ -1,0 +1,22 @@
+{
+  "name": "@autodubflow/worker",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --noEmit",
+    "lint": "eslint . --config ../../eslint.config.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@autodubflow/logger": "workspace:*",
+    "@autodubflow/queue": "workspace:*",
+    "@autodubflow/shared": "workspace:*",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
