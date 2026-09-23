@@ -303,6 +303,12 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/auth:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   packages/config:
     dependencies:
       zod:
@@ -361,6 +367,16 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
+  packages/providers:
+    dependencies:
+      '@autodubflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   packages/queue:
     dependencies:
       bullmq:
@@ -391,6 +407,26 @@ importers:
       zod:
         specifier: ^3.24.0
         version: 3.25.76
+
+  packages/storage:
+    dependencies:
+      '@autodubflow/config':
+        specifier: workspace:*
+        version: link:../config
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/video-engine:
+    dependencies:
+      '@autodubflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/workflow:
     dependencies:

@@ -24,10 +24,21 @@ autodubflow/
 │   ├── database/
 │   ├── shared/
 │   ├── queue/
+│   ├── storage/
+│   ├── video-engine/
+│   ├── providers/
+│   ├── ai/
+│   ├── auth/
 │   ├── config/
 │   └── logger/
-├── tests/
+├── infrastructure/
 ├── docs/
+│   ├── architecture/
+│   ├── api/
+│   ├── setup/
+│   ├── deployment/
+│   └── runbooks/
+├── tests/
 │
 ├── .env.example
 ├── .gitignore

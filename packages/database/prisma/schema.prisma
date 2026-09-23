@@ -94,6 +94,11 @@ enum ProjectStatus {
   FAILED
 }
 
+enum ProjectIntakeMode {
+  MANUAL_UPLOAD
+  AUTONOMOUS_SOURCE_EVENT
+}
+
 enum MediaAssetKind {
   SOURCE
   DUBBED
@@ -273,6 +278,7 @@ model Automation {
   processingConfigId  String?
   processingConfig    ProcessingConfig?  @relation(fields: [processingConfigId], references: [id])
   videos              SourceVideo[]
+  projects            Project[]
   rightsGrants        AutomationRightsGrant[]
   publishJobs         PublishJob[]
   workspaceId         String?
@@ -287,8 +293,8 @@ model Automation {
 
 model SourceVideo {
   id                 String            @id @default(cuid())
-  automationId       String
-  automation         Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId       String?
+  automation         Automation?       @relation(fields: [automationId], references: [id], onDelete: Cascade)
   userId             String?
   user               User?             @relation(fields: [userId], references: [id])
   sourceChannelId    String?
@@ -355,6 +361,9 @@ model Project {
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sourceVideoId String?
   sourceVideo   SourceVideo? @relation(fields: [sourceVideoId], references: [id], onDelete: SetNull)
+  automationId  String?
+  automation    Automation?  @relation(fields: [automationId], references: [id], onDelete: SetNull)
+  intakeMode    ProjectIntakeMode @default(MANUAL_UPLOAD)
   name          String
   status        ProjectStatus @default(DRAFT)
   editorState   Json?
@@ -370,6 +379,7 @@ model Project {
   @@index([workspaceId, status])
   @@index([userId])
   @@index([sourceVideoId])
+  @@index([automationId, status])
 }
 
 model MediaAsset {
