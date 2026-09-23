@@ -30,13 +30,13 @@ test('requireAuth rejects unauthenticated requests', async () => {
 
 test('requireAuth attaches user and continues for a valid session', async () => {
   const originalGetSession = auth.api.getSession;
-  auth.api.getSession = async () => ({
+  auth.api.getSession = (async () => ({
     user: {
       id: 'user_123',
       email: 'user@example.com',
       name: 'Test User',
     },
-  }) as any;
+  }) as any) as any;
 
   const req = { headers: { cookie: 'adf_session=test' } } as any;
   const res = { status: () => res, json: () => res } as any;
