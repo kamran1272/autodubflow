@@ -33,6 +33,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 const navigation = [
   { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Projects', href: '/projects' },
   { label: 'Automations', href: '/automations' },
   { label: 'Agent Workspace', href: '/agent' },
   { label: 'Queue', href: '/queue' },
@@ -50,6 +51,7 @@ const navigation = [
 
 const commandItems = [
   { label: 'Dashboard', href: '/dashboard', shortcut: 'G D' },
+  { label: 'Projects', href: '/projects', shortcut: 'G R' },
   { label: 'Automations', href: '/automations', shortcut: 'G A' },
   { label: 'Agent Workspace', href: '/agent', shortcut: 'G W' },
   { label: 'Queue', href: '/queue', shortcut: 'G Q' },

@@ -6,13 +6,6 @@ import { ProtectedRoute } from '../../components/auth/protected-route';
 import { useAuth } from '../../components/auth/auth-provider';
 import { AppShell, PageHeader, ProgressBar, StatusBadge } from '../../components/ui/design-system';
 
-const stats = [
-  { label: 'Active automations', value: '24', hint: '+12% vs last week', tone: 'success' as const },
-  { label: 'Queued jobs', value: '8', hint: '3 need review', tone: 'info' as const },
-  { label: 'Storage used', value: '68%', hint: '3.2 TB / 4.8 TB', tone: 'warning' as const },
-  { label: 'Uptime', value: '99.9%', hint: 'Stable this month', tone: 'success' as const },
-];
-
 const recentJobs = [
   { title: 'Launch campaign localization', status: 'Running', progress: 72, owner: 'Ops team' },
   { title: 'New product teaser', status: 'Queued', progress: 18, owner: 'Marketing' },
@@ -45,16 +38,8 @@ export default function DashboardPage() {
           </>
         }
       >
-        <section className="stats-grid">
-          {stats.map((stat) => (
-            <article key={stat.label} className="card metric-card">
-              <div className="metric-topline">
-                <span>{stat.label}</span>
-                <StatusBadge tone={stat.tone}>{stat.hint}</StatusBadge>
-              </div>
-              <strong>{stat.value}</strong>
-            </article>
-          ))}
+        <section className="card panel-section large-panel">
+          <div className="panel-header"><div><h3>Real media workspace</h3><p>Upload one video and watch the API and worker update its persisted processing state.</p></div><Link href="/projects" className="button primary">Open projects</Link></div>
         </section>
 
         <section className="dashboard-grid">

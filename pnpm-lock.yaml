@@ -50,6 +50,9 @@ importers:
       '@autodubflow/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@autodubflow/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
       '@autodubflow/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -268,6 +271,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@autodubflow/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@autodubflow/logger':
         specifier: workspace:*
         version: link:../../packages/logger

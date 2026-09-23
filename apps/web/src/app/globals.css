@@ -313,6 +313,22 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
   padding: 20px;
 }
 
+.project-workspace { display: grid; gap: 18px; }
+.upload-panel { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; }
+.upload-panel h2 { margin: 6px 0; font-size: 1.35rem; }
+.upload-panel p { margin: 0; max-width: 680px; color: var(--muted); }
+.eyebrow { color: var(--primary); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.upload-button { white-space: nowrap; }
+.upload-button.is-disabled { opacity: .65; pointer-events: none; }
+.project-list { display: grid; gap: 14px; }
+.project-card { padding: 20px; }
+.project-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.project-card h3 { margin: 5px 0 4px; }
+.project-card small { color: var(--muted); }
+.project-facts { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 16px; color: var(--muted); font-size: .86rem; }
+.project-facts strong { color: var(--text); margin-left: 5px; }
+@media (max-width: 720px) { .upload-panel, .project-card-header { align-items: stretch; flex-direction: column; } .upload-button { text-align: center; } }
+
 .page-header {
   display: grid;
   gap: 12px;
