@@ -39,7 +39,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         ? String((payload as { error?: string }).error)
         : typeof payload === 'object' && payload !== null && 'message' in payload
           ? String((payload as { message?: string }).message)
-          : 'Request failed.';
+          : response.status === 500 || response.status === 503
+            ? 'Authentication is unavailable. Start PostgreSQL and apply the Prisma schema, then try again.'
+            : `Request failed (${response.status}).`;
 
     throw new Error(errorMessage);
   }

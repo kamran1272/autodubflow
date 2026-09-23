@@ -41,6 +41,16 @@ const createRateLimiter = (windowMs: number, max: number) => {
 const authLimiter = createRateLimiter(60_000, 20);
 const ingestionQueue = createQueueClient(config.REDIS_URL, 'media-ingestion');
 
+const requireDatabase = async (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    next();
+  } catch (error) {
+    logger.error('auth-database-unavailable', { error: error instanceof Error ? error.message : String(error) });
+    res.status(503).json({ error: 'Authentication is temporarily unavailable because PostgreSQL is not running.' });
+  }
+};
+
 app.use(
   cors({
     origin: [config.WEB_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
@@ -67,11 +77,11 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.all('/api/auth/*', authLimiter, (req, res) => {
+app.all('/api/auth/*', authLimiter, requireDatabase, (req, res) => {
   void authHandler(req, res);
 });
 
-app.all('/api/auth', authLimiter, (req, res) => {
+app.all('/api/auth', authLimiter, requireDatabase, (req, res) => {
   void authHandler(req, res);
 });
 
@@ -147,6 +157,16 @@ app.get('/health', (_req, res) => {
   const payload = createHealthPayload('api', 'ok');
   logger.info('health-check', { payload });
   res.json(payload);
+});
+
+app.get('/ready', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ready', services: { api: 'ok', database: 'ok', queue: 'configured' } });
+  } catch (error) {
+    logger.error('readiness-check-failed', { error: error instanceof Error ? error.message : String(error) });
+    res.status(503).json({ status: 'not-ready', services: { api: 'ok', database: 'unavailable', queue: 'configured' }, error: 'Database is unavailable. Start PostgreSQL and apply the Prisma schema.' });
+  }
 });
 
 app.get('/', (_req, res) => {
