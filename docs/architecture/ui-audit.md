@@ -1,5 +1,7 @@
 # UI Audit
 
+Audit date: 2026-09-24. This document describes the current implementation, not the target architecture.
+
 ## Current surfaces
 
 - Next.js `apps/web` is the AutoDubFlow control-plane shell with auth, dashboard, automation center, agent workspace, queue, pipeline, ready buffer, scheduler, publishing, and account settings routes.
@@ -20,6 +22,7 @@
 - Sidebar has disabled routes for source/destination channels, templates, notifications, and analytics.
 - UI terminology alternates between project studio, dashboard, automation, and video workflow without a shared glossary.
 - The control plane does not yet expose rights confirmation, provider authorization, real schedule rules, or publishing verification.
+- The manual studio's API client targets routes that the active `apps/media-api` server does not register; its fallback simulation can turn an API failure into an apparent success.
 
 ## Dead links and route risks
 
@@ -47,3 +50,7 @@ The primary product path is:
 `Automation Center → Agent Workspace → Processing Pipeline → Ready Buffer → Scheduler → Publishing`.
 
 Manual upload should be available inside the studio as an intentional override/inspection workflow, not as the homepage or primary narrative. All visible controls must either call a real API or render an explicit unavailable state. Demo values must be marked mock/demo and never presented as production telemetry.
+
+## Disposition
+
+KEEP the Next.js shell, auth UX, route layout, responsive primitives, and selected studio editor components. REFACTOR all fixture-backed pages into API-backed loading/error/empty/success states and connect commands to authenticated API mutations. REPLACE local studio auth, simulated rendering, and fake persistence. REMOVE legacy branding and dead enabled controls after migration.

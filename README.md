@@ -1,6 +1,6 @@
 # AutoDubFlow
 
-AutoDubFlow is a production-oriented media automation platform for multilingual video localization. The system follows a layered architecture designed to keep user-facing workflows responsive while expensive tasks run asynchronously in dedicated worker and browser services.
+AutoDubFlow is the target name for an autonomous AI video automation platform. The current repository is an architecture scaffold with reusable authentication, persistence, queue, workflow, and media foundations; it is not yet a production-complete platform. See `docs/architecture/repository-audit.md` before implementing new product features.
 
 ## Architecture principles
 
@@ -11,7 +11,7 @@ AutoDubFlow is a production-oriented media automation platform for multilingual 
 - Shared contracts live in the shared package rather than in application code.
 - AI decides intent and generates actions; workers, providers, and video engine perform the actual execution.
 
-## Target monorepo layout (Step 1)
+## Target monorepo layout
 
 ```text
 autodubflow/
@@ -102,12 +102,6 @@ Autonomous Chromium/Playwright service. It handles browser sessions, navigation,
 - Use the queue and database layers as the coordination backbone.
 - Treat AI as a coordinator, not a replacement for deterministic workers.
 
-## Next steps
+## Implementation order
 
-1. Scaffold Next.js web app.
-2. Scaffold API service.
-3. Configure worker runtime and queue clients.
-4. Add Prisma schema and migrations.
-5. Implement provider interfaces and queue contracts.
-6. Add browser-agent service with Playwright isolation.
-7. Add end-to-end integration tests for the pipeline.
+Follow [docs/architecture/implementation-roadmap.md](docs/architecture/implementation-roadmap.md) and update [docs/architecture/implementation-status.md](docs/architecture/implementation-status.md) only when each phase has implementation, test, integration, UI, and documentation evidence. The immediate slice is authorized source event to persisted source video to queued ingestion and a durable worker transition.

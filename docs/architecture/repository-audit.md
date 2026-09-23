@@ -67,64 +67,169 @@ The repository is a pnpm/Turbo TypeScript monorepo with useful production founda
 - Generic one-job mental model with durable stage jobs: Media, Dubbing, Analysis, Editing, Caption, Render, QC, Publish.
 - Polling-only source-monitor assumption with YouTube push notifications plus polling fallback.
 - Browser-click-first publishing with official authorized YouTube API publishing as the primary adapter.
+# Repository Audit
+
+Audit date: 2026-09-24
+Branch: `architecture-rebuild` (worktree clean at audit start)
+Product target: AutoDubFlow, an autonomous AI video automation platform with a supporting manual video studio.
+
+## Executive finding
+
+This is a pnpm/Turbo TypeScript monorepo with useful foundations, but it is not yet an autonomous production platform. Authentication, health endpoints, a Prisma domain model, media primitives, and a workflow reducer exist. Source monitoring, durable stage execution, publishing, scheduling, browser sessions, and most operational UI behavior are not implemented.
+
+## 1. Current architecture
+
+- `apps/web`: Next.js control-plane UI with auth, dashboard, automation, queue, pipeline, ready-buffer, scheduling, publishing, and agent routes.
+- `apps/api`: Express API with Better Auth, CORS/origin checks, session, and health routes.
+- `apps/worker`: startup-only Redis/BullMQ client; it does not create a BullMQ `Worker` consumer.
+- `apps/browser-agent`: service boundary with a static placeholder response; no managed Chromium runtime.
+- `apps/dubflow-web`: Vite/React manual media studio and the main source of reusable editor UI/media code.
+- `apps/media-api`: Fastify health service plus media/provider code, but no active media workflow routes.
+- `packages/database`: Prisma 6 client and the canonical PostgreSQL-oriented autonomous schema.
+- `packages/workflow`: deterministic in-memory reducer prototype.
+- `packages/ai`: deterministic agent-runtime contract with bounded observe/plan/tool/validate/persist cycles; it has no provider or database integration yet.
+- `packages/queue`: basic BullMQ queue factory.
+- `packages/media-shared`: media DTOs, validation, subtitle types, and provider contracts.
+- `packages/config`, `logger`, and `shared`: configuration, structured logging, and small shared contracts.
+- `infrastructure`: Compose dependencies and development-oriented Dockerfiles.
+
+## 2. Current framework
+
+TypeScript is used throughout. The control plane is Next.js 15/React 19; the manual studio is Vite/React 18. The main API is Express; the media boundary is Fastify. Prisma targets PostgreSQL. BullMQ and ioredis provide the intended queue foundation. FFmpeg and Playwright are present at the media/browser boundaries. Better Auth uses the Prisma adapter.
+
+## 3. Current package manager
+
+The repository uses pnpm 9.12.0 with a workspace covering `apps/*` and `packages/*`, and Turbo for task orchestration. `docs/dubflow` contains an additional historical package manifest and lockfiles and is not part of the root workspace globs.
+
+## 4. Current applications
+
+The canonical applications are `web`, `api`, `worker`, and `browser-agent`. `dubflow-web` and `media-api` are existing supporting/legacy surfaces that need an explicit boundary. Root Compose currently starts API, worker, and browser-agent, but not web or media-api.
+
+## 5. Current database
+
+The active schema is `packages/database/prisma/schema.prisma`, using PostgreSQL and Better Auth models plus source channels, destination channels, automations, schedules, processing configuration, source videos, one-to-one stage records, ready-buffer records, and publishing records. No Prisma migration directory is committed. The package exposes `db:push`, not a production migration deployment workflow.
+
+## 6. Current integrations
+
+Redis/BullMQ, PostgreSQL/Prisma, MinIO direction, Better Auth, FFmpeg, and mock/live media provider contracts are present. ElevenLabs, translation, STT, and TTS adapters exist under `apps/media-api`, but they are not connected to an autonomous worker pipeline. There is no implemented YouTube source push receiver, official destination publisher, or production browser task protocol.
+
+## 7. Reusable components
+
+Keep the pnpm/Turbo workspace, Next.js shell, Better Auth configuration/middleware/ownership helpers, Prisma boundary, queue choice, structured logger, config validation, workflow reducer tests, media probing/timeline/subtitle utilities, provider interfaces, mock providers, filesystem safety helpers, and PostgreSQL/Redis/MinIO direction. The manual studio is reusable as an inspection/editing surface after its authentication and persistence are replaced.
+
+## 8. Broken components
+
+The API has no domain endpoints beyond auth/session/health. The worker has no consumers or stage handlers. The browser agent is a static placeholder. The media API exposes health only even though the studio calls upload, voice, project, and process routes. The UI cannot currently configure or operate a real automation end to end.
+
+## 9. Duplicate components
+
+There are two UI products (`apps/web` and `apps/dubflow-web`), two backend styles (Express and Fastify), two media/database boundaries, and a second DubFlow Prisma schema at `packages/database/prisma/dubflow/`. The nested `docs/dubflow` metadata is historical. These must be assigned ownership rather than mechanically merged.
+
+## 10. Conflicting architecture
+
+The target documents describe an event-driven autonomous pipeline, while runtime code still centers on health/startup boundaries. The target package list includes storage, video-engine, providers, ai, and auth, but those are not root packages. The reducer is in-memory while the product requires durable events, retries, leases, and crash recovery. The media studio is manual/project-oriented while the product definition is channel automation-first.
+
+### Legacy specification versus correct product
+
+| Area | Legacy/manual-studio emphasis | Correct AutoDubFlow architecture | Disposition |
+|---|---|---|---|
+| Product | VideoForge AI | AutoDubFlow autonomous video automation | Rebrand production UI; preserve compatibility only during migration |
+| Core object | Manual project | Automation plus source video, output variants, jobs, and durable events | Refactor domain model |
+| Trigger | User uploads a file | Authorized new source-video event, with polling fallback | Replace as primary workflow trigger |
+| Workflow owner | User starts individual AI tools | Server-side agent observes, decides, and advances typed stages | Refactor orchestration |
+| Dubbing | Manual project action | Restartable DubbingJob with configurable provider/language | Keep provider code; refactor execution |
+| Editing | Video Studio interaction | Deterministic video engine with optional browser editor adapter | Separate studio from workers |
+| Publishing | Secondary or absent | Authorized destination channel, ready buffer, scheduler, upload, verify | Add core workflow |
+| Scheduling | Not central | IANA timezone rules, UTC execution records, multiple videos/day | Add durable scheduler |
+| Source channel | Missing | Required owned/authorized YouTube source configuration | Add rights-aware model and UI |
+| Destination channel | Missing | Required authorized YouTube publishing connection | Add provider credential boundary |
+| Browser agent | Not central | Dedicated isolated Chromium/Playwright service | Replace placeholder boundary |
+| Notifications | Generic status messaging | User preferences plus internal agent events and audit records | Split concerns |
+| Voice commands | Missing | Microphone, STT, intent, confirmation, structured action, audit | Add after core commands |
+| Crash recovery | Limited | Durable attempts, leases, retries, idempotency, replayable events | Mandatory refactor |
+| Long-running autonomy | Not central | Server continues while browser and user computer are offline | Core acceptance criterion |
+| Output formats | Limited project outputs | Long-form, 9:16, Shorts/TikTok/Instagram-style presets | Add variant model and render policy |
+
+The legacy studio operations such as upload, analysis, translation, dubbing, subtitles, and render remain useful as manual inspection/editing capabilities. They are not a substitute for source monitoring, durable stage jobs, ready-buffer scheduling, or authorized publishing. The current studio client references `/api/uploads/videos`, `/api/voices`, `/api/projects`, and `/api/projects/:id/process`; the active media API currently registers only `/health`.
+
+## 11. Dead code
+
+Generated output (`apps/web/.next`, `apps/dubflow-web/dist`, generated Prisma/media artifacts) is not source and can obscure clean-build behavior. Historical nested manifests and lockfiles are not active runtime code. Disabled navigation and unconnected studio API calls are dead paths until their owning service exists.
+
+## 12. Placeholder/fake implementations
+
+The browser session response explicitly says automation is not implemented. The worker only logs startup. Main UI pages contain fixture metrics, jobs, delivery statuses, and connector health. The manual studio stores demo credentials locally and simulates processing after API failure. These states must be visibly marked mock/unavailable or removed before production claims.
+
+## 13. Incorrect dependencies
+
+The active workspace previously declared Prisma 5.11 directly in `apps/media-api` while the canonical database package uses Prisma 6.0. Phase 1 removed those unused media-api declarations; the root lockfile now has one active Prisma version. React 18/19 separation is valid only if each app remains isolated. The historical `docs/dubflow` lockfile still contains Prisma 5 and is not part of the root workspace.
+
+## 14. Missing dependencies
+
+The target requires explicit storage, video-engine, providers, and auth package boundaries, plus YouTube API/PubSub support, scheduler execution, durable event/attempt persistence, notification delivery, usage metering, and browser session infrastructure. `packages/ai` now provides the control-loop contract, but still needs integration with durable state and real tools. Add each remaining boundary only with a vertical slice and tests; do not scaffold empty packages for appearance.
+
+## 15. Security issues
+
+Development fallback secrets and database/object-store credentials exist in configuration. Auth reset URLs are logged. Studio passwords are stored in `localStorage`. OAuth access/refresh token fields have no documented encryption or rotation boundary. Rate limiting is process-local and unbounded. CORS/origin policy is duplicated. Future ingestion and FFmpeg paths must retain argument/path validation, SSRF controls, bounded workspaces, and redacted logs. No secret values are reproduced in this audit.
+
+## 16. Database conflicts
+
+The active schema has broad nullable relations, string stage statuses, no migration history, no durable workflow event or stage-attempt model, no provider-immutable source identity constraint, no rights grant, no encrypted credential reference, no execution record for schedules, and incomplete publish verification/retry state. The DubFlow schemas represent a separate manual-studio domain and must be mapped deliberately.
+
+## 17. UI conflicts
+
+The control-plane routes are mostly fixture-backed and include dead or disabled controls. The studio retains `VideoForge AI` branding, local/demo authentication, local React state, object URLs, simulated rendering, and fake persistence. Missing states include rights confirmation, revoked OAuth, stage retry/failure, ready-buffer reservation conflicts, schedule capacity conflicts, upload verification, and agent confirmation.
+
+## 18. Routing conflicts
+
+The UI calls domain surfaces that the API does not expose. The studio calls `/api/uploads/videos`, `/api/voices`, `/api/projects`, and `/api/projects/:id/process`, while the active Fastify service registers only `/health`. The two UI applications also have separate auth/routing models. The canonical product route should be `apps/web`; studio routes should be explicitly subordinate.
+
+## 19. Naming conflicts
+
+The final name is AutoDubFlow. Active legacy strings include `VideoForge AI`, `videoforge-account`, and `videoforge-session` in `apps/dubflow-web`, plus historical DubFlow naming in docs and schemas. First migrate product-visible text and auth ownership deliberately; do not rename files or database tables blindly.
+
+## 20. Provider conflicts
+
+Provider contracts live in media code, but there is no canonical `packages/providers` boundary or provider credential ownership model. ElevenLabs is an intended primary dubbing adapter, not the workflow itself. YouTube publishing should use authorized official APIs first; browser automation is an additional adapter, not the primary publisher.
+
+## 21. Workflow conflicts
+
+The required stages are distinct and optional by configuration, but the current model is one source video with one-to-one stage records and an in-memory reducer. There are no durable stage jobs, attempts, leases, idempotency constraints, event records, or transactional outbox. The next slice must prove `SOURCE_EVENT` through persisted ingestion and a worker transition before expanding providers.
+
+## 22. Deployment conflicts
+
+Compose hardcodes development credentials and omits web/media-api. Dockerfiles run `dev` commands, do not build production artifacts, do not run migrations/generate Prisma in a deployment policy, lack readiness checks, and do not define browser dependencies or persistent media work storage. `infrastructure/docker/docker-compose.dubflow.yml` is a second inconsistent Compose definition.
+
+## Product-name migration plan
+
+1. Treat `apps/web` and root docs as the canonical AutoDubFlow surface.
+2. Inventory and replace user-visible `VideoForge AI` text in `apps/dubflow-web`; preserve file names only where migration compatibility requires them.
+3. Move studio auth and persistence behind the canonical API before removing local storage keys.
+4. Retain old schema/table identifiers only with an explicit migration map and deprecation record.
+5. Remove historical branding and nested metadata after the supporting studio capabilities are migrated and tested.
+
+## Classification
+
+### KEEP
+
+Monorepo/tooling direction, control-plane shell, Better Auth foundation, Prisma technology, BullMQ/Redis, media primitives, provider contracts, mock mode, logger/config, filesystem safety, focused tests, and the bounded `packages/ai` runtime contract.
+
+### REFACTOR
+
+API domain routes, durable database state, queue contracts, worker consumers, media service boundary, UI data/commands/states, rights and credentials, package boundaries, naming migration, and production deployment.
+
+### REPLACE
+
+Static browser-agent response, startup-only worker, fake UI telemetry, local/demo auth, simulated success paths, and browser-click-first publishing assumptions.
 
 ### REMOVE AFTER MIGRATION
 
-- Duplicate nested project metadata and dependency folders if any are reintroduced.
-- VideoForge branding from production AutoDubFlow surfaces after all usages are migrated.
-- Fake dashboard metrics, dead buttons, and claims of healthy/ready services that are not backed by runtime state.
-- Unused legacy package manifests and lockfiles retained only as historical artifacts.
+Unbacked fixture claims, dead enabled controls, legacy branding, duplicate nested metadata, stale generated artifacts from source distribution, and the unused Prisma 5 dependency.
 
-## Conflict inventory
+## Validation baseline
 
-1. Product conflict: the Vite studio is manual upload/project/export oriented; the target product is autonomous channel automation.
-2. Runtime conflict: the API and worker are described as orchestrators/executors but currently expose startup/health behavior only.
-3. Workflow conflict: Prisma has a status enum and stage records, but no durable event log or transition enforcement in the database.
-4. Queue conflict: a generic queue factory exists without named queues, consumers, retry policy, or idempotency.
-5. Database conflict: the autonomous schema and relocated DubFlow schema represent different domains; they must not be mechanically merged.
-6. Contract conflict: `packages/shared` is minimal while `packages/media-shared` contains most operational media contracts.
-7. Browser conflict: browser-agent is a placeholder and does not isolate user/automation sessions.
-8. Publishing conflict: there is no YouTube OAuth/upload/verify adapter.
-9. UI conflict: some autonomous routes now exist, but their data and commands are demonstrations rather than API-backed operations.
-10. Deployment conflict: Dockerfiles run dev commands, omit healthchecks/migrations, and do not define a production process model.
-11. Naming conflict: legacy `VideoForge AI` strings remain in `apps/dubflow-web`; this app must be labeled as legacy/supporting studio or rebranded through a planned migration.
-12. Environment conflict: root `.env`, `.env.dubflow.local`, and `packages/database/.env` serve different boundaries; secrets remain local and must never be committed.
-
-## Security findings
-
-- No committed private environment files were found by Git tracking; examples are present and private files are ignored.
-- Development secrets and database passwords are weak defaults and must be replaced in deployment.
-- Auth logs include reset URLs in development; this must be disabled or redacted in production.
-- Browser credentials and OAuth refresh tokens need encrypted secret storage, not ordinary fields or logs.
-- FFmpeg and filesystem code require path/argument validation and bounded working directories.
-- CORS/origin checks exist for the main API but need centralized configuration and integration tests.
-- Rate limiting is in-memory and process-local; production needs a shared limiter or gateway policy.
-
-## Dead, fake, or placeholder implementations
-
-- Browser session creation returns a static ready object.
-- Worker logs startup but does not consume jobs.
-- Media API exposes health but no production routes/services.
-- Dashboard, automation, queue, agent, pipeline, buffer, schedule, and publishing screens contain static sample values.
-- Several sidebar items remain disabled or not implemented.
-- Existing media studio includes local-storage/demo behavior and fallback simulation paths that must not be presented as production processing.
-
-## Missing dependencies and boundaries
-
-Missing or implicit target packages include storage, video-engine, providers, ai, and auth. The implementation should not add all of them speculatively; create each when a real contract and vertical slice requires it. YouTube Data API, PubSubHubbub/webhook handling, ElevenLabs production adapter, scheduler, durable event log, browser session store, notification delivery, and usage metering are not complete.
-
-## Validation snapshot
-
-- Workflow reducer tests: passing.
-- Main web and edited route typechecks: passing at last validation.
-- Auth signup was fixed by aligning `User.emailVerified` with Better Auth's boolean contract.
-- Prisma schema can be pushed after PostgreSQL is running and `DATABASE_URL` is available.
-- Main web typecheck initially encountered mixed React 18/19 declarations from the multi-app workspace; `apps/web/tsconfig.json` now scopes type roots to its own React 19 declarations.
-- `apps/api` and `apps/worker` had TypeScript 6-only `ignoreDeprecations` overrides while the workspace uses TypeScript 5.9; both are aligned to the supported `5.0` setting.
-- The API also required a typed CORS dependency and explicit Node-header/Web-`Headers` boundary casts; these are compile-safety fixes, not runtime policy changes.
-- Full production build remains incomplete; generated Prisma client and Windows file locks have caused build friction.
-- Docker dependency startup has worked when Docker Desktop is running; production containers are not yet production-ready.
+Read-only inspection found no database reset or destructive operation. Verified during this audit: canonical Prisma validation passes; the four focused workflow tests pass; API typecheck passes; media-api typecheck passes; and `docker compose config` renders successfully. The Next.js web typecheck fails with eight React 18/19 `ReactNode` incompatibilities involving `apps/web` sources and `.next` generated types. Workspace-wide Turbo typecheck did not produce a reliable final result because overlapping Windows terminal state force-killed tasks. Lint, full tests, and full build remain unverified; the repository is not claimed to build cleanly.
 
 ## Audit conclusion
 
-Do not delete the repository. Keep the foundations, make the autonomous workflow durable and event-driven, and treat the manual media studio as a supporting surface. The next implementation should be one end-to-end source-event-to-ready-buffer slice with real persistence, queue processing, retries, and tests.
+Do not delete the repository or reset its database. Keep the foundations, make workflow state durable and event-driven, and treat the manual studio as a supporting inspection surface. The exact next implementation is the smallest end-to-end slice: authorized source event, dedupe, persisted source video, named ingestion queue, real worker transition, durable event, and ready/test fixture with integration coverage.

@@ -14,23 +14,28 @@ This roadmap follows the requested phases. A phase is not complete until impleme
 | 7 | Queue/workers | Named queues, typed jobs, leases, retries, idempotency, consumers |
 | 8 | Storage/media ingestion | Authorized ingestion, object storage, validation, checksums |
 | 9 | ElevenLabs dubbing | Provider abstraction, language config, webhook/callback, mock mode |
-| 10 | Video analysis | Transcript, language, duration, scene/aspect and burned-caption signals |
-| 11 | Smart reframe/crop/background | 9:16 and long-form presets with deterministic engine tests |
-| 12 | Existing-caption detection/masking | Detection confidence, mask regions, review fallback |
-| 13 | Transitions | Configurable deterministic transitions and template rules |
-| 14 | Target-language captions | Generation, edit model, styles, alignment, export formats |
-| 15 | Rendering | Variant outputs, progress, cancellation, resumability |
-| 16 | Quality control | Media checks, audio/video checks, caption checks, gate policy |
-| 17 | YouTube destination/publishing | OAuth, upload/schedule, verify, retry, audit |
-| 18 | Scheduler/ready buffer | IANA rules, UTC reservations, capacity, multiple videos/day |
-| 19 | Remote browser | Isolated contexts, secure sessions, live view, task protocol |
-| 20 | AI agent | Observe/decide/tool/result/recover loop with bounded tools |
-| 21 | Voice control | Microphone, STT, intent, confirmation, audit |
-| 22 | Notifications | User preferences, job/publish alerts, failure escalation |
-| 23 | End-to-end integration | Source event to verified destination in test environment |
-| 24 | Security audit | Secret scan, authz, path safety, SSRF, token encryption, threat review |
-| 25 | Performance audit | Queue throughput, media capacity, backpressure, cost/usage limits |
-| 26 | Production deployment | Migrations, healthchecks, secrets, observability, rollback, runbooks |
+| 10 | Transcript and translation | Provider interfaces, transcript persistence, translation, editing contract |
+| 11 | Video analysis | Language, duration, scene/aspect and burned-caption signals |
+| 12 | Smart reframe/crop | 9:16, long-form, and platform preset geometry |
+| 13 | Background blur | Deterministic blur/background provider and tests |
+| 14 | Existing-caption detection | Confidence policy, regions, and review fallback |
+| 15 | Existing-caption masking | Conditional mask/blur only after positive detection |
+| 16 | Transitions | Configurable deterministic transitions and template rules |
+| 17 | Target-language captions | Generation, edit model, styles, alignment, export formats |
+| 18 | FFmpeg rendering | Variant outputs, progress, cancellation, resumability |
+| 19 | Quality control and repair | Media gates, caption gates, retry/repair policy |
+| 20 | Ready buffer | Process-ahead buffering, capacity, reservations |
+| 21 | Scheduler | IANA rules, UTC executions, custom times, multiple videos/day |
+| 22 | YouTube destination/publishing | OAuth, upload/schedule, verify, retry, audit |
+| 23 | Remote browser | Isolated contexts, secure sessions, live view, task protocol |
+| 24 | AI agent orchestrator | Observe/decide/tool/result/recover loop with bounded tools |
+| 25 | Natural-language commands | Structured intent, confirmation, authorization, audit |
+| 26 | Voice commands | Microphone, STT, intent, confirmation, audit |
+| 27 | Notifications | User preferences, job/publish alerts, failure escalation |
+| 28 | End-to-end automation | Source event to verified destination in test environment |
+| 29 | Security audit | Secret scan, authz, path safety, SSRF, token encryption, threat review |
+| 30 | Performance audit | Queue throughput, media capacity, backpressure, cost/usage limits |
+| 31 | Production deployment | Migrations, healthchecks, secrets, observability, rollback, runbooks |
 
 ## Immediate next slice
 

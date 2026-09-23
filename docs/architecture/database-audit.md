@@ -1,10 +1,14 @@
 # Database Audit
 
+Audit date: 2026-09-24
+
 ## Current state
 
 The active Prisma schema is PostgreSQL-oriented and contains Better Auth models plus autonomous entities: users, source/destination channels, schedules, templates, processing configs, automations, source videos, media, dubbing, analysis, editing, captions, render, QC, publish, and `ReadyBufferItem`.
 
 A separate relocated DubFlow schema exists under `packages/database/prisma/dubflow/` and represents a manual media-studio domain. It must remain a migration/reference source until a deliberate canonical model decision is made.
+
+No migration directory is committed. The database package currently exposes `prisma db push` and Prisma generation/validation, so schema synchronization is development-oriented rather than a reviewed production rollout.
 
 ## Reusable structure
 
@@ -28,6 +32,10 @@ A separate relocated DubFlow schema exists under `packages/database/prisma/dubfl
 10. Audit logs, usage records, notifications, and agent decisions are not represented in the active schema.
 11. Nullable relations are broad; business invariants need service-level validation and selective database constraints.
 12. Media stage output references are too generic for multiple formats, variants, and platform presets.
+13. `SourceChannel`, `DestinationChannel`, `Schedule`, `Template`, and `ProcessingConfig` have no explicit user ownership relation, allowing service-layer mistakes to become cross-tenant access risks.
+14. `SourceVideo` has an optional `userId` despite its required automation owner, which weakens the ownership invariant.
+15. `SourceVideoStatus` combines durable workflow state with stage progress but does not model optional-stage skips, blocked review, cancellation, or retryable failure.
+16. `ReadyBufferItem` has no variant/preset identity or reservation token, so multiple output variants and concurrent scheduler claims are underspecified.
 
 ## Target durable additions
 
@@ -39,6 +47,8 @@ A separate relocated DubFlow schema exists under `packages/database/prisma/dubfl
 - `ScheduleRule` and `ScheduledPublication`: IANA timezone rule separated from UTC execution record.
 - `ProviderCredentialRef`: encrypted secret reference, provider, owner, scope, expiry, revocation state.
 - `AgentDecision`, `AuditLog`, `UsageRecord`, `Notification`, and `VoiceCommand`.
+- `AutomationRightsGrant` with consent version, scope, confirmation, and revocation timestamps.
+- Explicit owner relations and composite indexes for every user-scoped resource.
 
 ## Index and constraint priorities
 
@@ -53,3 +63,7 @@ A separate relocated DubFlow schema exists under `packages/database/prisma/dubfl
 ## Migration policy
 
 Do not reset or overwrite production-style data. Introduce a migration directory, review generated SQL, take backups, and roll out additive tables/columns first. The separate DubFlow schema must be mapped intentionally; do not merge same-named `User`, `Project`, or `Voice` models mechanically.
+
+## Database disposition
+
+KEEP Prisma/PostgreSQL and the Better Auth foundation. REFACTOR the schema into durable stage executions, events, credentials, rights, scheduling, audit, and usage models with reviewed migrations. REPLACE `db:push` as the production rollout mechanism. REMOVE duplicate schema copies only after their required studio data has an approved mapping. No database reset or destructive migration was run during this audit.

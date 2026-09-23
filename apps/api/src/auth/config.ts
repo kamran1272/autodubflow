@@ -10,7 +10,11 @@ const config = getConfig();
 
 const apiBaseUrl = process.env.BETTER_AUTH_URL ?? process.env.API_URL ?? config.API_URL;
 const webBaseUrl = process.env.WEB_URL ?? config.WEB_URL;
-const secret = process.env.BETTER_AUTH_SECRET ?? 'dev-auth-secret-change-me';
+const secret = config.BETTER_AUTH_SECRET || (config.NODE_ENV === 'production' ? '' : 'dev-auth-secret-change-me');
+
+if (!secret) {
+  throw new Error('BETTER_AUTH_SECRET is required for production authentication.');
+}
 
 export const auth = betterAuth({
   baseURL: apiBaseUrl,
@@ -27,7 +31,7 @@ export const auth = betterAuth({
       logger.info('password-reset-email-sent', {
         userId: user.id,
         email: user.email,
-        resetUrl: url,
+        resetUrlLogged: false,
       });
     },
     onPasswordReset: async ({ user }) => {

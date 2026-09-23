@@ -1,6 +1,6 @@
 # Architecture overview
 
-This repository implements the audited AutoDubFlow architecture: a UI-first, queue-driven media automation system with isolated service boundaries.
+This repository is being aligned to the audited AutoDubFlow target architecture: a UI-first, queue-driven media automation system with isolated service boundaries. The audit baseline documents which boundaries are implemented and which remain scaffolds.
 
 ## Core flow
 
@@ -40,3 +40,5 @@ Runs isolated Chromium automation and interacts with third-party websites with n
 ## Governance rule
 
 AI may decide what to do, but the platform must not let the frontend or orchestration layer directly own expensive execution. Deterministic work belongs to workers, provider adapters, and the video engine.
+
+For the verified current state and migration classifications, see [repository-audit.md](repository-audit.md). The target design is in [target-architecture.md](target-architecture.md), and implementation claims must follow [implementation-status.md](implementation-status.md).
