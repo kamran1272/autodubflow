@@ -26,6 +26,7 @@ enum SourceVideoStatus {
   CAPTIONING
   RENDERING
   QC
+  READY
   PUBLISHED
   FAILED
 }
@@ -195,6 +196,7 @@ model SourceVideo {
   render             Render?
   qualityControl     QC?
   publish            Publish?
+  readyBuffer        ReadyBufferItem?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
@@ -292,4 +294,17 @@ model Publish {
   channelName   String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+model ReadyBufferItem {
+  id            String      @id @default(cuid())
+  sourceVideoId String      @unique
+  sourceVideo   SourceVideo @relation(fields: [sourceVideoId], references: [id], onDelete: Cascade)
+  status        String      @default("ready")
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status, scheduledAt])
 }
