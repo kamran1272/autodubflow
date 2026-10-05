@@ -1,5 +1,13 @@
 # AutoDubFlow
 
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-9-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
+![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
 AutoDubFlow is a production-oriented media automation platform for multilingual video localization. The system follows a layered architecture designed to keep user-facing workflows responsive while expensive tasks run asynchronously in dedicated worker and browser services.
 
 ## Architecture principles
@@ -111,3 +119,34 @@ Autonomous Chromium/Playwright service. It handles browser sessions, navigation,
 5. Implement provider interfaces and queue contracts.
 6. Add browser-agent service with Playwright isolation.
 7. Add end-to-end integration tests for the pipeline.
+
+## Quick start
+
+Requirements: Node.js 22+, pnpm 9, Docker (for Postgres/Redis).
+
+```bash
+# install dependencies
+pnpm install
+
+# copy environment template and fill in values
+cp .env.example .env
+
+# start infrastructure (postgres, redis, minio)
+docker compose up -d
+
+# generate the Prisma client
+pnpm --filter @autodubflow/database prisma:generate
+
+# run everything in dev mode
+pnpm dev
+```
+
+| App | URL |
+|---|---|
+| web (control plane) | http://localhost:3000 |
+| dubflow-web (media studio) | http://localhost:5173 |
+| media-api | http://localhost:4100 |
+
+## License
+
+MIT — see [LICENSE](LICENSE).
